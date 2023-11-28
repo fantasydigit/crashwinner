@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <style>
+        table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+        }
+        </style>
+        </head>
+    <body>
+        {% block content %}
+            <section id="det">
+                <form action="{% url 'bcrash' %}" method="post">
+                    {% csrf_token %}
+                    <div class="theText">
+                        <textarea name="text" placeholder="Bang Result!" style="width: 215px; height: 215px;"></textarea>
+                        <br>
+                        <input name="redgreen" type="text" placeholder="RedBear GreenBull :)" style="width: 213px; height: 20px;"></input>
+                        <!-- <input name="greenbull" type="text" placeholder="GreenBull" style="width: 100px; height: 20px;"></input> -->
+                        <br><br>
+                        <button type="submit" style="width: 218px; height: 40px;">Genie</button>
+                        <!-- <button >Clean</button> -->
+                        <br>
+                    </div>
+                </form>
+                <!-- {% if text %}
+                <div class="theText" >
+                    <textarea placeholder="Analyzing text">{{text.processed}}</textarea>
+                </div>
+                {% endif %} -->
+            </section>
+        {% endblock %}
+        <p>Bet Rounds</p> 
+        <button type="submit" style="width: 70px; height: 20px;" onclick="removeAllRows()">DELETE</button>
+        
+        <table style="width:100%">
+            <tr>
+            <th>PlayersBet</th>
+            <th>PlayersLoss</th>
+            <th>PlayersProfit</th>
+            <th>RedBear</th>
+            <th>GreenBull</th>
+            <th>CrashPoint</th>
+            <th>Site Profit</th>
+            <th>Site Historical</th>
+            </tr>
+            {% for x in reversed_bets %}
+                <tr>
+                    <td>$ {{ x.players_bet|floatformat:2 }}</td>
+                    <td>$ {{ x.players_bang|floatformat:2 }}</td>
+                    <td>$ {{ x.players_profit|floatformat:2 }}</td>
+                    <td>$ {{ x.redbear|floatformat:2 }}</td>
+                    <td>$ {{ x.greenbull|floatformat:2 }}</td>
+                    <td>{{ x.crash_point|floatformat:2 }}x</td>
+                    <td>$ {{ x.site_profit|floatformat:2 }}</td>
+                    <td>$ {{ x.site_historical_profit|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>         
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    function removeAllRows() {
+        console.log("clickkkkkkkkkk");
+        $.ajax({
+            url: '/delete-all-rows/',
+            type: 'POST',          
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(response) {
+                // Handle the successful response
+                console.log(response);
+                location.reload(); // Refresh the page
+            },
+            error: function(xhr, status, error) {
+                // Handle the error response
+                console.error(error);
+            }
+        });
+
+    }
+
+</script>

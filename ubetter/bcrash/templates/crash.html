@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="refresh" content="0.1">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <style>
+            table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            }
+            
+            .container {
+                display: grid;
+                grid-template-columns: auto auto;
+                width: auto;
+                height: 200px;
+            }
+            
+            .left-div {
+                background-color: white;
+            }
+            
+            .right-div {
+                background-color: white;
+            }
+
+            .container1 {
+                display: flex;
+                flex-direction: column;
+                height: 100vh; /* Set the container height to full viewport height */
+                height: 200px;
+            }
+                
+            .top-div1 {
+                    background-color: white;
+                    height: 50px;
+                    margin-bottom: 10px;
+            }
+                
+            .left-div1 {
+                    background-color: white;
+                    flex-grow: 1; /* Allow the div to grow to fill remaining space */
+                    margin-right: 10px;
+            }
+
+        </style>
+        </head>
+    <body>
+        {% block content %}
+            <section id="det">
+                <!-- <form action="{% url 'crash' %}" method="post">
+                    {% csrf_token %}
+                    <div class="container">
+                        <div class="left-div">
+                            <textarea name="text" placeholder=" Trend Graph" style="width: 96%; height: 98%;"></textarea>
+                        </div>
+                        <div class="right-div">
+                            <textarea class="top-div1" name="text" placeholder=" Game Players" style="width: 100%; height: 160px;"></textarea>
+                            <button class="button" type="submit" style="width: 100%; height: 60px;">Genie</button>
+                        </div>
+                    </div>
+                </form> -->
+                <form action="{% url 'scrap' %}" method="post">
+                    {% csrf_token %}
+                    <div class="container">
+                        <div class="left-div">
+                            <div name="text" placeholder=" Trend Graph" style="width: 96%; height: 98%;">
+                                <div name="last_plus_container">
+                                    Last Site Plus: $ {{last_site_plus}} 
+                                </div>
+                                <div name="last_minus_container">
+                                    Last Site Minus: $ {{last_site_minus}} 
+                                </div>
+                                <div name="game_progress">
+                                    Game Progress: {{game_progress}} 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right-div">
+                            <textarea class="top-div1" name="text" placeholder=" Game Players" style="width: 100%; height: 160px;"></textarea>
+                            <button class="button" type="submit" style="width: 100%; height: 60px;">Genie</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- {% if text %}
+                <div class="theText" >
+                    <textarea placeholder="Analyzing text">{{text.processed}}</textarea>
+                </div>
+                {% endif %} -->
+            </section>
+        {% endblock %}
+        <p></p> 
+        <br>
+        <button type="submit" style="width: 70px; height: 20px;" onclick="removeAllRows()">DELETE</button>
+        <button type="submit" style="width: 70px; height: 20px;" onclick="save()">SAVE</button>
+
+        <table style="width:100%">
+            <th>Bet</th>
+            <th>Bang</th>
+            <th>Won</th>
+            <th>Profit</th>
+            <th>Peak</th>
+            <th>Sigma</th>
+            <th>R-Bet</th>
+            <th>R-Bang</th>
+            <th>R-Won</th>
+            <th style="color:brown">PayOut</th>            
+            <th>R-Profit</th>
+            <th>R-Peak</th>
+            <th>Moon</th>
+            <th>R-Sigma</th>
+            </tr>
+            {% for x in reversedprofits %}
+                <tr>
+                    <td>{{ x.players_bet}}</td>
+                    <td>{{ x.players_loose }}</td>
+                    <td>{{ x.players_profit }}</td>
+                    <td>{{ x.site_profit }}</td>
+                    <td>{{ x.site_peak_valley }}</td>
+                    <td>{{ x.site_profit_sigma }}</td>
+                    <td>{{ x.r_players_bet}}</td>
+                    <td>{{ x.r_players_loose }}</td>
+                    <td>{{ x.r_players_profit }}</td>
+                    <td style="color: red;">{{ x.payout|floatformat:2 }}×</td>
+                    <td>{{ x.r_site_profit }}</td>
+                    <td>{{ x.r_site_peak_valley }}</td>
+                    <td>{{ x.moon_site_sigma}}</td>
+                    <td>{{ x.r_site_profit_sigma }}</td>
+                    
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>         
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    function removeAllRows() {
+        console.log("clickkkkkkkkkk");
+        $.ajax({
+            url: '/delete-game-rows/',
+            type: 'POST',          
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(response) {
+                // Handle the successful response
+                console.log(response);
+                location.reload(); // Refresh the page
+            },
+            error: function(xhr, status, error) {
+                // Handle the error response
+                console.error(error);
+            }
+        });
+
+    }
+
+    function save() {
+        console.log("SAVE....");
+        $.ajax({
+            url: '/save-game-rows/',
+            type: 'POST',          
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(response) {
+                // Handle the successful response
+                console.log(response);
+                location.reload(); // Refresh the page
+            },
+            error: function(xhr, status, error) {
+                // Handle the error response
+                console.error(error);
+            }
+        });
+
+    }
+
+    // frontend.js
+    const socket = new WebSocket('ws://127.0.0.1:8000/ws/database');
+
+    socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    // Update the page with the received message
+    console.log(data.message);
+    };
+
+
+</script>
