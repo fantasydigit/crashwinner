@@ -1,8 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="refresh" content="0.1">
+        <!-- <meta http-equiv="refresh" content="0.1"> -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="{% static 'ReconnectingEventSource.min.js' %}"></script>
         <style>
             table, th, td {
             border: 1px solid black;
@@ -92,10 +94,11 @@
         {% endblock %}
         <p></p> 
         <br>
+        <button type="submit" style="width: 70px; height: 20px;" onclick="genie()">GENIE</button>
         <button type="submit" style="width: 70px; height: 20px;" onclick="removeAllRows()">DELETE</button>
         <button type="submit" style="width: 70px; height: 20px;" onclick="save()">SAVE</button>
 
-        <table style="width:100%">
+        <table style="width:100%" id="bet-table">
             <th>Bet</th>
             <th>Bang</th>
             <th>Won</th>
@@ -111,7 +114,7 @@
             <th>Moon</th>
             <th>R-Sigma</th>
             </tr>
-            {% for x in reversedprofits %}
+            <!-- {% for x in reversedprofits %}
                 <tr>
                     <td>{{ x.players_bet}}</td>
                     <td>{{ x.players_loose }}</td>
@@ -129,7 +132,7 @@
                     <td>{{ x.r_site_profit_sigma }}</td>
                     
                 </tr>
-            {% endfor %}
+            {% endfor %} -->
         </table>
     </body>
 </html>         
@@ -193,15 +196,120 @@
         });
 
     }
+    function genie() {
+        console.log("genie....");
+        $.ajax({
+            url: '/genie/',
+            type: 'POST',          
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            success: function(response) {
+                // Handle the successful response
+                console.log(response);
+                //location.reload(); // Refresh the page
+            },
+            error: function(xhr, status, error) {
+                // Handle the error response
+                console.error(error);
+            }
+        });
 
-    // frontend.js
-    const socket = new WebSocket('ws://127.0.0.1:8000/ws/database');
+    }
 
-    socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    // Update the page with the received message
-    console.log(data.message);
-    };
+    // const socket = new WebSocket('ws://localhost:8000/ws/scraping/');
+    
 
+    // socket.onopen = function(event) {
+    //     console.log('WebSocket connection opened:', event);
+    //     socket.send("hello world")
+    // };
+
+    // socket.onmessage = function(event) {
+    //     const data = JSON.parse(event.data);
+    //     console.log('WebSocket message received:', data.message);
+    //     location.reload();
+    // };
+
+    // socket.onclose = function(event) {
+    //     console.log('WebSocket connection closed:', event);
+    // };
+
+    const es = new ReconnectingEventSource('/events/'); 
+
+    es.addEventListener('message', function (e) {
+        //console.log(e.data);
+
+        // var source = new EventSource("/events/")
+
+        // var para = document.createElement("P"); 
+        // const obj = JSON.parse(event.data)
+        // para.innerText = obj.text;
+        // document.body.appendChild(para)
+        //location.reload();
+        fetch('/api/get_last_object/')
+            .then(response => response.json())
+            .then(data => {
+                // Reverse the order of the data
+                // data.reverse();
+                // delete the HTML table 
+                // Create the HTML table
+                console.log(data)
+                let table = document.getElementById('bet-table');
+                let newRow = table.insertRow(1);
+                let cell_players_bet = newRow.insertCell(0);
+                let cell_players_loose = newRow.insertCell(1);
+                let cell_players_profit = newRow.insertCell(2);
+                let cell_site_profit = newRow.insertCell(3);
+                let cell_site_peak_valley = newRow.insertCell(4);
+                let cell_site_profit_sigma = newRow.insertCell(5);
+                let cell_r_players_bet = newRow.insertCell(6);
+                let cell_r_players_loose = newRow.insertCell(7);
+                let cell_r_players_profit = newRow.insertCell(8);
+                let cell_payout = newRow.insertCell(9);
+                let cell_r_site_profit = newRow.insertCell(10);
+                let cell_r_site_peak_valley = newRow.insertCell(11);
+                let cell_moon_site_sigma = newRow.insertCell(12);
+                let cell_r_site_profit_sigma = newRow.insertCell(13);
+
+                cell_players_bet.innerHTML = data.players_bet;
+                cell_players_loose.innerHTML = data.players_loose;
+                cell_players_profit.innerHTML = data.players_profit;
+                cell_site_profit.innerHTML = data.site_profit;
+                cell_site_peak_valley.innerHTML = data.site_peak_valley;
+                cell_site_profit_sigma.innerHTML = data.site_profit_sigma;
+                cell_r_players_bet.innerHTML = data.r_players_bet;
+                cell_r_players_loose.innerHTML = data.r_players_loose;
+                cell_r_players_profit.innerHTML = data.r_players_profit;
+                cell_payout.innerHTML = data.payout;
+                cell_r_site_profit.innerHTML = data.r_site_profit;
+                cell_r_site_peak_valley.innerHTML = data.r_site_peak_valley;
+                cell_moon_site_sigma.innerHTML = data.moon_site_sigma;
+                cell_r_site_profit_sigma.innerHTML = data.r_site_profit_sigma;
+            });
+
+    }, false);
+
+    es.addEventListener('stream-reset', function (e) {
+    }, false);
+
+    // Connection opened
+    // socket.addEventListener('open', (event) => {
+    //     console.log('WebSocket connection opened:', event);
+    // });
+
+    // // Listen for messages
+    // socket.addEventListener('message', (event) => {
+    //     console.log('WebSocket received message:', event.data);
+
+    //     // Handle the received message as needed
+    //     const data = JSON.parse(event.data);
+    //     console.log('Parsed message:', data.message);
+    // });
+
+    // // Connection closed
+    // socket.addEventListener('close', (event) => {
+    //     console.log('WebSocket connection closed:', event);
+    // });
 
 </script>

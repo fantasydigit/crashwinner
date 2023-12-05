@@ -2,6 +2,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template import loader
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.urls import reverse
 
 from .models import TextProcess
 from .models import BetRound
@@ -14,6 +16,7 @@ from .engine import betscrap
 
 import pandas as pd
 from datetime import datetime
+import websockets
 
 lastGameText = ""
 # def bcrash(request):
@@ -58,19 +61,19 @@ def crash(request):
     'last_site_plus': last_site_plus,
     'game_progress': game_progress
   }
-  # print("new crash!!!!!!!!")
+  print("new crash!!!!!!!!")
   return HttpResponse(template.render(context, request))
 
 def scrap(request):
   print("dsffffffffffffffffffffffffff")
   betscrap.start()
-  # gameprofits = GameProfit.objects.all()
-  # reversedprofits = reversed(gameprofits)      
-  # template = loader.get_template('scrap.html')
-  # context = {
-  #   'reversedprofits': reversedprofits,
-  # }
-  # return HttpResponse(template.render(context, request))
+  gameprofits = GameProfit.objects.all()
+  reversedprofits = reversed(gameprofits)
+  template = loader.get_template('scrap.html')
+  context = {
+    'reversedprofits': reversedprofits,
+  }
+  return HttpResponse(template.render(context, request))
 
 
 def delete_all_rows(request):
@@ -109,8 +112,59 @@ def save_game_rows(request):
   # Add an else block to handle other HTTP methods
   else:
       return JsonResponse({'message': 'Invalid request method.'}, status=400)
+def genie(request):
+  if request.method == 'POST':
+      betscrap.start()
+      # betscrap.test()
+      return JsonResponse({'message': 'genie started successfully.'})
+  
+  # Add an else block to handle other HTTP methods
+  else:
+      return JsonResponse({'message': 'Invalid request method.'}, status=400)
+  
+def refresh_page():
+  # return JsonResponse({'refresh': True})
+  print("ref in views.py")
+  # response = HttpResponse()
+  # response['Content-Type'] = 'text/javascript'
+  # response.write('<script>location.reload(true);</script>')
+  # return response
+  new_url = reverse('crash')
+  print(new_url)
+  return redirect('http://localhost:8000/crash/')
 
+async def notify_ws_clients(message):    
+  uri = "ws://localhost:8001/ws/scraping/"  # Update with your WebSocket URL
+  print(uri)
+  print(message)
+  async with websockets.connect(uri) as websocket:
+      await websocket.send(message)
 
+def get_model_data(request):
+  data = list(GameProfit.objects.values())
+  return JsonResponse(data, safe=False)
 
-
+def get_last_object(request):
+  last_object = GameProfit.objects.last()
+  if last_object:
+     data = {
+        'players_bet': last_object.players_bet,
+        'players_loose': last_object.players_loose,
+        'players_profit': last_object.players_profit,
+        'site_profit': last_object.site_profit,
+        'site_peak_valley': last_object.site_peak_valley,
+        'site_profit_sigma': last_object.site_profit_sigma,
+        'r_players_bet': last_object.r_players_bet,
+        'r_players_loose': last_object.r_players_loose,
+        'r_players_profit': last_object.r_players_profit,
+        'payout': last_object.payout,
+        'r_site_profit': last_object.r_site_profit,
+        'r_site_peak_valley': last_object.r_site_peak_valley,
+        'moon_site_sigma': last_object.moon_site_sigma,
+        'r_site_profit_sigma': last_object.r_site_profit_sigma,
+     }
+     return JsonResponse(data, safe=False)
+  else:
+     return JsonResponse({}, safe=False) 
+   
 

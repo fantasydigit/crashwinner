@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-$=hef8^tfwnc2-kno$u8%4fy&)@81h&iar9u*#t**$6&&d@3xr
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add the domains or IPs allowed to connect
 
 # Application definition
 
@@ -38,7 +38,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bcrash',
+    'channels',
+    'django_eventstream'
 ]
+ASGI_APPLICATION = 'ubet.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels.layers.InMemoryChannelLayer"
+        # "CONFIG": {
+        #     "hosts": [("127.0.0.1", 8000)],
+        # },
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -48,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_grip.GripMiddleware',
 ]
 
 ROOT_URLCONF = 'ubet.urls'
