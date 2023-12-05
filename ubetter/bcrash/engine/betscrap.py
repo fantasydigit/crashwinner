@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from . import bet_analyzer
+from .bet_analyzer import inputBetData
 import time
 import pandas as pd
 from .. import models
@@ -16,6 +17,75 @@ lastPeakValley = 0.0
 r_siteSigmaProfit = 0.0
 r_lastPeakValley = 0.0
 moonSiteSigma = 0.0
+
+def fetch_last_game():
+    print("fet_last")
+    global driver, lastGameID
+    # click last game-item on 1.20x 2.32x 20.33x tab line
+    #game_items =  driver.find_elements(By.XPATH, "//div[contains(@class, 'game-item')]")
+    #game_items = WebDriverWait(driver,1).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[@class='recent-list']//div[contains(@class, 'game-item')]")))
+    try:
+        # recent_list = driver.find_element(By.XPATH, "//div[@class='recent-list']")
+        # game_items = WebDriverWait(driver,1).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[@class='recent-list']//div[contains(@class, 'game-item')]")))
+        # game_items should be 7 items in 765 px width~~~~
+        while True:
+            last_index = 6
+            # time.sleep(1)
+            # game_items =  WebDriverWait(driver, 1).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[contains(@class, 'game-item')]")))
+            game_items =  driver.find_elements(By.XPATH, "//div[contains(@class, 'game-item')]")
+            if len(game_items) == 7:
+                last_item = game_items[last_index]
+                game_id = last_item.find_element(By.XPATH, ".//div[@class='issus']").text
+                #print(f"game_id:{game_id}")
+                #print(f"lastGameID:{lastGameID}")
+                if game_id != "" and game_id != lastGameID:
+                    lastGameID = game_id    
+                    last_item.click()
+                    # print(f"click issus:{lastGameID}")
+                    # pick up game table data from game round dialog
+                    #time.sleep(3)
+                    timeout = 30 # 30s ?? too long do you think? it's timeout not sleep, kk so no worries.
+                    #table_view =  driver.find_element(By.XPATH, "//div[@class='ui-scrollview a1wa45wx']")
+                    # table_view = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='ui-scrollview a1wa45wx']")))
+                    # table_view = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body[1]/div[1]/div[1]/div[1]/div[1]/div[@class='ui-scrollview a1wa45wx']")))
+                    table_view = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body[1]/div[1]/div[1]/div[1]/div[1]/div[@class='ui-scrollview a45fdda']")))
+                    #print(f"scroll:{table_view.text}")
+                    global scrappingResult
+                    scrappingResult = table_view.text
+                    print("trying to input betdata.....")
+                    bet_analyzer.inputBetData(scrappingResult)
+
+                    # click close button on game result dialog
+                    # close_button =  driver.find_element(By.XPATH, "//button[@class='close-icon i1gm0mn8 dialog-close']")
+                    close_button =  driver.find_element(By.XPATH, "/html/body[1]/div[1]/div[1]/div[1]/div[1]/button[@class='close-icon i1gm0mn8 dialog-close']")
+                    print(close_button.text)
+                    close_button.click()
+                    #################################### recursive call for fetch~~~~~~~~~~~~~~~~
+                    # fetch_last_game()
+                else:
+                    time.sleep(0.1)      
+            else:
+                time.sleep(1)
+            
+    except:
+        fetch_last_game()
+
+def test():
+    global driver
+    options = webdriver.ChromeOptions()
+    options.add_argument('--ignore-certificate-errors-spki-list')
+    options.add_argument('--ignore-ssl-errors')
+    driver = webdriver.Chrome(options=options)
+    #driver = webdriver.Firefox()
+
+    # Navigate to the url
+    # Open the website
+    driver.get("https://bc.game/game/crash")
+    driver.set_window_size(765, 600)
+    time.sleep(1)
+    print("bet_analyzer.test()")
+    bet_analyzer.test()
+    
 def start():
     print("start scrapppppppppppppppppppppping......")
     global driver
@@ -38,7 +108,7 @@ def start():
         close_button.click()
     except:
         print("No Lucky Spin~~")
-    
+
     #click language icon on header
     # Define the maximum timeout for waiting
     # Use WebDriverWait with the expected condition visibility_of_all_elements_located
@@ -71,53 +141,6 @@ def start():
     # Close the driver
     driver.quit()
 
-def fetch_last_game():
-    global driver, lastGameID
-    # click last game-item on 1.20x 2.32x 20.33x tab line
-    #game_items =  driver.find_elements(By.XPATH, "//div[contains(@class, 'game-item')]")
-    #game_items = WebDriverWait(driver,1).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[@class='recent-list']//div[contains(@class, 'game-item')]")))
-    try:
-        # recent_list = driver.find_element(By.XPATH, "//div[@class='recent-list']")
-        # game_items = WebDriverWait(driver,1).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[@class='recent-list']//div[contains(@class, 'game-item')]")))
-        # game_items should be 7 items in 765 px width~~~~
-        while True:
-            last_index = 6
-            # time.sleep(1)
-            # game_items =  WebDriverWait(driver, 1).until(EC.visibility_of_all_elements_located((By.XPATH, "//div[contains(@class, 'game-item')]")))
-            game_items =  driver.find_elements(By.XPATH, "//div[contains(@class, 'game-item')]")
-            if len(game_items) == 7:
-                last_item = game_items[last_index]
-                game_id = last_item.find_element(By.XPATH, ".//div[@class='issus']").text
-                #print(f"game_id:{game_id}")
-                #print(f"lastGameID:{lastGameID}")
-                if game_id != "" and game_id != lastGameID:
-                    lastGameID = game_id    
-                    last_item.click()
-                    #print(f"click issus:{lastGameID}")
-                    # pick up game table data from game round dialog
-                    #time.sleep(3)
-                    timeout = 30 # 30s ?? too long do you think? it's timeout not sleep, kk so no worries.
-                    #table_view =  driver.find_element(By.XPATH, "//div[@class='ui-scrollview a1wa45wx']")
-                    # table_view = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='ui-scrollview a1wa45wx']")))
-                    table_view = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "/html/body[1]/div[1]/div[1]/div[1]/div[1]/div[@class='ui-scrollview a1wa45wx']")))
-                    #print(f"scroll:{table_view.text}")
-                    global scrappingResult
-                    scrappingResult = table_view.text
-                    bet_analyzer.inputBetData(scrappingResult)
-
-                    # click close button on game result dialog
-                    close_button =  driver.find_element(By.XPATH, "//button[@class='close-icon i1gm0mn8 dialog-close']")
-                    print(close_button.text)
-                    close_button.click()
-                    #################################### recursive call for fetch~~~~~~~~~~~~~~~~
-                    # fetch_last_game()
-                else:
-                    time.sleep(0.1)      
-            else:
-                time.sleep(1)
-            
-    except:
-        fetch_last_game()
     
 
 def fetch_current_game():

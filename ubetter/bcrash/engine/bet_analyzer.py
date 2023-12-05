@@ -2,6 +2,13 @@ from .. import models
 from . import utility
 from .. import views
 from django.http.request import HttpRequest
+from django.http.response import HttpResponse
+from django.http import JsonResponse
+import webbrowser
+import asyncio
+import websockets 
+import json
+import time
 
 # sigma all players bet per round
 playersBet = 0.00 
@@ -56,6 +63,7 @@ def analyzeSiteProfit(play_text):
     # Setare77
     # 0.00×	
     # $ 12.81
+    print("start analyze....")
     global siteProfit, payOut, playersBet, playersProfit, siteSigmaProfit, playersLoose, lastSiteMinus, lastSitePlus, lastPeakValley
     global r_siteProfit, r_playersBet, r_playersProfit, r_siteSigmaProfit, r_playersLoose, r_lastSiteMinus, r_lastSitePlus, r_lastPeakValley, moonSiteSigma
     global botBetDollar
@@ -152,7 +160,7 @@ def analyzeSiteProfit(play_text):
         moonSiteSigma += r_siteProfit
     else:
         moonSiteSigma = r_siteProfit
-
+    print("models input...try...")
     if models.GameProfit.objects.all().exists():
         roundcount = len(models.GameProfit.objects.all())
         lastobject = models.GameProfit.objects.all()[roundcount-1]
@@ -194,20 +202,50 @@ def analyzeSiteProfit(play_text):
     r_site_sigma_profit_str = utility.getFormatted(r_siteSigmaProfit)
     r_peak_valley_str = utility.getFormatted(r_lastPeakValley)
     moon_site_sigma_str = utility.getFormatted(moonSiteSigma)
+    print("set gameprofit...")
     gameprofit = models.GameProfit(players_bet = players_bet_str, r_players_bet = r_players_bet_str, payout = str(payOut), players_loose = players_loose_str, r_players_loose = r_players_loose_str,
                             players_profit = players_profit_str, site_profit = site_profit_str, site_profit_sigma = site_sigma_profit_str, site_peak_valley = peak_valley_str, 
                             r_players_profit = r_players_profit_str, r_site_profit = r_site_profit_str, r_site_profit_sigma = r_site_sigma_profit_str, r_site_peak_valley = r_peak_valley_str, moon_site_sigma = moon_site_sigma_str)
+    print("gameprofit saving...")
     gameprofit.save()
     
     models.lastSiteMinus = utility.getFormatted(lastSiteMinus)
     models.lastSitePlus = utility.getFormatted(lastSitePlus)
-
-    # request = HttpRequest()
-    # request.__init__()
-    # views.crash(request)
-
-    return True
     
+    # Notify connected WebSocket clients
+    
+    # asyncio.get_event_loop().run_until_complete(notify_ws_clients("Scraping complete"))
+    # try:
+    #     print("asyncio ........... ")
+    #     # asyncio.get_event_loop().run_until_complete(views.notify_ws_clients("Scraping complete"))
+    #      # Explicitly create an event loop
+    #     loop = asyncio.new_event_loop()
+    #     asyncio.set_event_loop(loop)
+    #     # Notify connected WebSocket clients
+    #     loop.run_until_complete(notify_ws_clients("Scraping complete"))
+
+    # except Exception as e:
+    #     print(f"An error occurred: {e}")
+
+    # uri = "ws://localhost:8000/ws/scraping/"  
+    # message = "Last Game Analyzed~~"
+    # asyncio.run(send_websocket_message(uri, message))
+    # async_to_sync(send_event('test', 'message', {'text':'Hello World'}))
+    send_event('test', 'message', {'text':'model data juat added'})
+
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+channel_layer = get_channel_layer()
+from django_eventstream  import send_event
+def test():
+    # uri = "ws://localhost:8000/ws/scraping/"  
+    # message = "Last Game Analyzed~~"
+    # print("try to send websocket....")
+    # # asyncio.run(send_websocket_message(uri, message))
+    # async_to_sync(channel_layer.group_send)('result', {'message', "good job"})
+
+    send_event('test', 'message', {'text':'Hello World'})
+
 def analyzeProgressData(progress_dataframe):
    print(progress_dataframe)
    
@@ -219,5 +257,35 @@ def validate(message):
     else:
         lastScrappingText = message
         return True
+    
+async def send_websocket_message(uri, message):
+    try:
+        async with websockets.connect(uri) as websocket:
+            # Prepare your message data (convert to JSON if needed)
+            message_data = {'message': message}
+            print(message_data)
+            json_data = json.dumps(message_data)
+
+            # Send the message through the WebSocket connection
+            await websocket.send(json_data)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# async def notify_ws_clients(message):    
+#     try:
+#         uri = "ws://localhost:8000/ws/scraping/"  # Update with your WebSocket URL
+#         print(uri)
+#         # print(message)
+#         # Create a dictionary with the key "message"
+#         message_data = {'message': message}
+
+#         # Convert the dictionary to a JSON-formatted string
+#         json_data = json.dumps(message_data)
+#         print(json_data)
+#         async with websockets.connect(uri) as websocket:
+#             await websocket.send(json_data)
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
+
 
 
