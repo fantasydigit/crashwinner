@@ -17,7 +17,6 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 
 # asgi.py
 
-
 import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
@@ -49,32 +48,3 @@ application = ProtocolTypeRouter({
     ]),
 })
 
-# from bcrash.routing import websocket_urlpatterns  # Update with your actual app name
-
-
-# import os
-# from django.core.asgi import get_asgi_application
-# from channels.routing import ProtocolTypeRouter, URLRouter
-# from channels.security.websocket import AllowedHostsOriginValidator
-# from channels.auth import AuthMiddlewareStack
-# import bcrash.routing
-# from bcrash.consumers import ScrapingConsumer
-# from django.urls import path
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ubet.settings')
-
-# application = ProtocolTypeRouter(
-#     {
-#         "http": get_asgi_application(),
-#         "websocket": #AllowedHostsOriginValidator (
-#             AuthMiddlewareStack(
-#                 URLRouter(
-#                     # websocket_urlpatterns
-#                     # bcrash.routing.websocket_urlpatterns
-#                     [
-#                         path("ws/scraping/", ScrapingConsumer.as_asgi()),
-#                     ]
-#                 )
-#             ),
-#         #),
-#     }
-# )

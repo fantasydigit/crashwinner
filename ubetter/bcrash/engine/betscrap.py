@@ -131,18 +131,19 @@ def start():
     dollar_item.click()
     # show more button click on game/crash/classic
     time.sleep(2)
-    # showmore_item =  driver.find_element(By.XPATH, "/html/body/div[1]/div[4]/div[2]/div[2]/div[1]/div[3]/button[1]")
-    # print(showmore_item.text)
-    # showmore_item.click()
     # fetch the last game data
-    fetch_last_game()
+    # fetch_last_game()
+    
+    showmore_item =  driver.find_element(By.XPATH, "/html/body/div[1]/div[4]/div[2]/div[2]/div[1]/div[3]/button[1]")
+    print(showmore_item.text)
+    showmore_item.click()
     # fetch the current game data
-    # fetch_current_game()        
+    fetch_current_game()        
     # Close the driver
     driver.quit()
 
     
-
+from django_eventstream  import send_event
 def fetch_current_game():
     global driver
     allbet_item =  driver.find_element(By.XPATH, "/html/body/div[1]/div[4]/div[2]/div[2]")
@@ -224,7 +225,8 @@ def fetch_current_game():
                 r_betting_amount = int(r_betting_amount)
                 # print(f"{profit_amount}/{betting_amount}")
                 models.gameProgress = f"{escape_count}/{player_count}\t\t{profit_amount}/{betting_amount}\t\t{r_profit_amount}/{r_betting_amount}"
-                time.sleep(0.1)
+                # time.sleep(0.1)
+                send_event('test', 'message', {'text':'betting'})
             elif state_str.__contains__("is-win"):
                 if game_is_win == True:
                     continue
@@ -327,7 +329,8 @@ def fetch_current_game():
                                         players_profit = players_profit_str, site_profit = site_profit_str, site_profit_sigma = site_sigma_profit_str, site_peak_valley = peak_valley_str, 
                                         r_players_profit = r_players_profit_str, r_site_profit = r_site_profit_str, r_site_profit_sigma = r_site_sigma_profit_str, r_site_peak_valley = r_peak_valley_str, moon_site_sigma = moon_site_sigma_str)
                 gameprofit.save()
-                time.sleep(0.1)
+                # time.sleep(0.1)
+                send_event('test', 'message', {'text':'bang'})
                 print("bang state now")
             else:
                 print("something wrong!")

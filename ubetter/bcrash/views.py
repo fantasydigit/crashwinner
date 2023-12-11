@@ -114,6 +114,7 @@ def save_game_rows(request):
       return JsonResponse({'message': 'Invalid request method.'}, status=400)
 def genie(request):
   if request.method == 'POST':
+      models.GameProfit.objects.all().delete()
       betscrap.start()
       # betscrap.test()
       return JsonResponse({'message': 'genie started successfully.'})
@@ -122,24 +123,6 @@ def genie(request):
   else:
       return JsonResponse({'message': 'Invalid request method.'}, status=400)
   
-def refresh_page():
-  # return JsonResponse({'refresh': True})
-  print("ref in views.py")
-  # response = HttpResponse()
-  # response['Content-Type'] = 'text/javascript'
-  # response.write('<script>location.reload(true);</script>')
-  # return response
-  new_url = reverse('crash')
-  print(new_url)
-  return redirect('http://localhost:8000/crash/')
-
-async def notify_ws_clients(message):    
-  uri = "ws://localhost:8001/ws/scraping/"  # Update with your WebSocket URL
-  print(uri)
-  print(message)
-  async with websockets.connect(uri) as websocket:
-      await websocket.send(message)
-
 def get_model_data(request):
   data = list(GameProfit.objects.values())
   return JsonResponse(data, safe=False)
@@ -167,4 +150,16 @@ def get_last_object(request):
   else:
      return JsonResponse({}, safe=False) 
    
+def get_profit_data(request):
+  profit_objects = GameProfit.objects.all()
+  data = [{'date': '2023/12/05', 'open': profit_obj.r_site_profit_sigma, 'high': profit_obj.r_site_profit_sigma, 'low': profit_obj.r_site_profit_sigma, 'close': profit_obj.r_site_profit_sigma} for profit_obj in profit_objects]
+  return JsonResponse(data, safe=False)
+
+def get_progress_data(request):
+   progress_data = models.gameProgress
+   data = {
+      'progress': progress_data,
+   }   
+   print(data)
+   return JsonResponse(data, safe=False)
 

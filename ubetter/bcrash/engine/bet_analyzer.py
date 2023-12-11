@@ -64,6 +64,7 @@ def analyzeSiteProfit(play_text):
     # 0.00×	
     # $ 12.81
     print("start analyze....")
+    # print(play_text)
     global siteProfit, payOut, playersBet, playersProfit, siteSigmaProfit, playersLoose, lastSiteMinus, lastSitePlus, lastPeakValley
     global r_siteProfit, r_playersBet, r_playersProfit, r_siteSigmaProfit, r_playersLoose, r_lastSiteMinus, r_lastSitePlus, r_lastPeakValley, moonSiteSigma
     global botBetDollar
@@ -118,6 +119,7 @@ def analyzeSiteProfit(play_text):
                     player_profit = player_profit.replace(',', '')
                     player_profit = player_profit.replace('$', '')
                     player_profit = player_profit.replace(' ', '')
+                    player_profit = player_profit.replace('-', '')
                     #print(f"payout: {payout} player_profit: {player_profit}" )  
                     if utility.is_float_convertible(player_profit):
                         player_loose_float = float(player_profit)
@@ -212,39 +214,12 @@ def analyzeSiteProfit(play_text):
     models.lastSiteMinus = utility.getFormatted(lastSiteMinus)
     models.lastSitePlus = utility.getFormatted(lastSitePlus)
     
-    # Notify connected WebSocket clients
-    
-    # asyncio.get_event_loop().run_until_complete(notify_ws_clients("Scraping complete"))
-    # try:
-    #     print("asyncio ........... ")
-    #     # asyncio.get_event_loop().run_until_complete(views.notify_ws_clients("Scraping complete"))
-    #      # Explicitly create an event loop
-    #     loop = asyncio.new_event_loop()
-    #     asyncio.set_event_loop(loop)
-    #     # Notify connected WebSocket clients
-    #     loop.run_until_complete(notify_ws_clients("Scraping complete"))
-
-    # except Exception as e:
-    #     print(f"An error occurred: {e}")
-
-    # uri = "ws://localhost:8000/ws/scraping/"  
-    # message = "Last Game Analyzed~~"
-    # asyncio.run(send_websocket_message(uri, message))
-    # async_to_sync(send_event('test', 'message', {'text':'Hello World'}))
     send_event('test', 'message', {'text':'model data juat added'})
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 channel_layer = get_channel_layer()
 from django_eventstream  import send_event
-def test():
-    # uri = "ws://localhost:8000/ws/scraping/"  
-    # message = "Last Game Analyzed~~"
-    # print("try to send websocket....")
-    # # asyncio.run(send_websocket_message(uri, message))
-    # async_to_sync(channel_layer.group_send)('result', {'message', "good job"})
-
-    send_event('test', 'message', {'text':'Hello World'})
 
 def analyzeProgressData(progress_dataframe):
    print(progress_dataframe)
@@ -258,34 +233,3 @@ def validate(message):
         lastScrappingText = message
         return True
     
-async def send_websocket_message(uri, message):
-    try:
-        async with websockets.connect(uri) as websocket:
-            # Prepare your message data (convert to JSON if needed)
-            message_data = {'message': message}
-            print(message_data)
-            json_data = json.dumps(message_data)
-
-            # Send the message through the WebSocket connection
-            await websocket.send(json_data)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-# async def notify_ws_clients(message):    
-#     try:
-#         uri = "ws://localhost:8000/ws/scraping/"  # Update with your WebSocket URL
-#         print(uri)
-#         # print(message)
-#         # Create a dictionary with the key "message"
-#         message_data = {'message': message}
-
-#         # Convert the dictionary to a JSON-formatted string
-#         json_data = json.dumps(message_data)
-#         print(json_data)
-#         async with websockets.connect(uri) as websocket:
-#             await websocket.send(json_data)
-#     except Exception as e:
-#         print(f"An error occurred: {e}")
-
-
-
